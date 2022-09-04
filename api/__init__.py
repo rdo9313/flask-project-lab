@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
 import psycopg2
+from api.models import Restaurant
 
 
 def create_app(database, user):
@@ -23,7 +24,10 @@ def create_app(database, user):
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM restaurants")
         restaurants = cursor.fetchall()
-        return jsonify(restaurants)
+        restaurant_objs = [
+            Restaurant(restaurant).__dict__ for restaurant in restaurants
+        ]
+        return jsonify(restaurant_objs)
 
     @app.route("/restaurants/<int:restaurant_id>")
     def show_restaurant(restaurant_id):
@@ -31,6 +35,6 @@ def create_app(database, user):
         cursor = conn.cursor()
         cursor.execute("SELECT * FROM restaurants WHERE id = %s", (restaurant_id,))
         restaurant = cursor.fetchone()
-        return jsonify(restaurant)
+        return jsonify(Restaurant(restaurant).__dict__)
 
     return app
